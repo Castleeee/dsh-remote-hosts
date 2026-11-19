@@ -1,0 +1,8 @@
+# 注册 Host gateway，Client 入口由 package.json 声明。
+# hosts 为空时仍启动机器管理接口，通过界面添加机器。
+- insert:
+    - id: remote-hosts
+      name: 'dsh-remote-hosts'
+      config:
+        gatewayPort: 0
+        hosts: []

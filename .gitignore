@@ -1,0 +1,6 @@
+config.local.json
+node_modules/
+.verification/
+dist-pack/
+*.tgz
+.DS_Store

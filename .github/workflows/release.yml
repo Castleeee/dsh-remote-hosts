@@ -1,0 +1,74 @@
+name: Build and release
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    outputs:
+      tag: ${{ steps.pack.outputs.tag }}
+      asset: ${{ steps.pack.outputs.asset }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.20.0
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci --legacy-peer-deps --ignore-scripts
+      - name: Test
+        run: npm test
+      - name: Build and pack
+        id: pack
+        run: npm run pack:release
+      - uses: actions/upload-artifact@v4
+        with:
+          name: plugin-package
+          path: dist-pack/
+          if-no-files-found: error
+          retention-days: 14
+
+  release:
+    if: github.ref == 'refs/heads/master' && github.event_name != 'pull_request'
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: plugin-package
+          path: dist-pack
+      - name: Verify package checksum
+        working-directory: dist-pack
+        run: sha256sum --check SHA256SUMS
+      - name: Publish rolling version release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ needs.build.outputs.tag }}
+          RELEASE_ASSET: ${{ needs.build.outputs.asset }}
+        run: |
+          set -euo pipefail
+          existing=$(gh release list --limit 1000 --json tagName --jq ".[] | select(.tagName == \"${RELEASE_TAG}\") | .tagName")
+          if [ -n "$existing" ]; then
+            gh release delete "$RELEASE_TAG" --yes --cleanup-tag
+          fi
+          gh release create "$RELEASE_TAG" "dist-pack/${RELEASE_ASSET}" dist-pack/SHA256SUMS \
+            --target "$GITHUB_SHA" --title "$RELEASE_TAG" --latest \
+            --notes-file dist-pack/RELEASE_NOTES.md
+          echo "https://github.com/${GITHUB_REPOSITORY}/releases/download/${RELEASE_TAG}/${RELEASE_ASSET}" >> "$GITHUB_STEP_SUMMARY"

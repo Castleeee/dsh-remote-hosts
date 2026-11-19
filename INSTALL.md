@@ -1,18 +1,18 @@
 # 安装与卸载
 
-当前仅在独立 lab 中启用。日常 Desktop 安装应在 [ROADMAP.md](./ROADMAP.md) 中的关键行为验收通过后执行。
+验收范围见 [PROGRESS.md](./PROGRESS.md)，尚未覆盖的行为见 [ROADMAP.md](./ROADMAP.md)。
 
 ## 安装发布包
 
-要求本地 DSH `0.2.2-rc.1`、Node.js ≥`24.9.0` 和系统 OpenSSH。在 DSH 插件管理界面添加：
+要求本地 DSH `0.2.2-rc.1` 或 `0.2.2-rc.3`、Node.js ≥`24.9.0` 和系统 OpenSSH。在 DSH 插件管理界面添加：
 
 ```text
-https://github.com/Castleeee/dsh-remote-hosts/releases/download/v0.0.1/dsh-remote-hosts-0.0.1.tgz
+https://github.com/Castleeee/dsh-remote-hosts/releases/download/v0.0.2/dsh-remote-hosts-0.0.2.tgz
 ```
 
 也可以在 [Releases](https://github.com/Castleeee/dsh-remote-hosts/releases) 下载 `.tgz` 文件和 `SHA256SUMS`，核对校验值后安装本地文件。安装包包含已构建的客户端，运行依赖由包管理器安装。Desktop profile 通过桌面应用的插件管理界面操作。
 
-`master` 每次推送会运行基础测试、构建并发布当前版本；同版本 Release 更新到最新提交。集成测试覆盖情况和剩余限制见 [PROGRESS.md](./PROGRESS.md)。
+`main` 每次推送会运行基础测试、构建并发布当前版本；同版本 Release 更新到最新提交。集成测试覆盖情况和剩余限制见 [PROGRESS.md](./PROGRESS.md)。
 
 ## 从源码构建
 
@@ -24,7 +24,7 @@ npm test
 npm run pack:release
 ```
 
-插件包中的 `client/client.js` 是构建产物。修改客户端源码后重新构建；安装 `dist-pack/dsh-remote-hosts-0.0.1.tgz`。`SHA256SUMS` 和对应发布说明也保存在该目录。
+插件包中的 `client/client.js` 是构建产物。修改客户端源码后重新构建；安装 `dist-pack/dsh-remote-hosts-0.0.2.tgz`。`SHA256SUMS` 和对应发布说明也保存在该目录。
 
 ## 安装到目标 profile
 

@@ -2,11 +2,11 @@
 
 在本地 DSH 中管理 SSH 机器、远程工作区和会话，使用 DSH 原生聊天界面。远端运行官方 DSH，无需安装本插件。
 
-当前适配 DSH `0.2.2-rc.1`，真实远端的成功回复、流式结算、运行中停止、队列、审批和问题交互已通过 lab 验收，详见 [PROGRESS.md](./PROGRESS.md)。日常 Desktop 尚未安装。
+本机适配 DSH `0.2.2-rc.1`、`0.2.2-rc.3`，远端验收版本为 `0.2.2-rc.1`。真实远端的成功回复、流式结算、运行中停止、队列、审批和问题交互已通过 lab 验收，详见 [PROGRESS.md](./PROGRESS.md)。
 
 ## 使用
 
-1. 在本地 DSH 的插件管理器中安装 `https://github.com/Castleeee/dsh-remote-hosts/releases/download/v0.0.1/dsh-remote-hosts-0.0.1.tgz`，重启目标 profile。也可以从 [Releases](https://github.com/Castleeee/dsh-remote-hosts/releases) 下载 `.tgz` 文件安装。
+1. 在本地 DSH 的插件管理器中安装 `https://github.com/Castleeee/dsh-remote-hosts/releases/download/v0.0.2/dsh-remote-hosts-0.0.2.tgz`，重启目标 profile。也可以从 [Releases](https://github.com/Castleeee/dsh-remote-hosts/releases) 下载 `.tgz` 文件安装。
 2. 打开侧栏“机器管理”，直接选择 `~/.ssh/config` 中的机器连接。
 3. 添加新机器时输入 `ssh root@host -p 22` 或 `root@host -p22`。配置写入同一 SSH 文件，VS Code 可以直接使用。
 4. SSH 需要密码、密钥口令或主机指纹确认时，界面才显示认证输入。密码不保存。
@@ -24,7 +24,7 @@ DSH 连接信息保存在 `$DSH_HOME/remote-hosts.json`，文件权限为 `0600`
 
 `lib/gateway.js` 监听 `127.0.0.1`，默认由系统分配空闲端口，通过 `ssh -N -L` 连接远端。Host 通过官方 `webserver/index-inject` 启动配置向客户端发布实际地址。token 在 gateway 内换成认证 cookie；HTTP 和 WebSocket 代理共用机器的认证状态。HTTP 401/403 会触发一次重新认证。来源仅允许 loopback 页面和 `dsh-app://app`。
 
-`client/source.js` 负责侧栏和远端状态；`client/native-adapter.js` 管理原生会话、权限和模型服务适配，`client/lifetime.js` 管理方法包装及释放，`client/slot-adapter.js` 管理指定插槽的订阅和组件包装，`client/compatibility.js` 检查宿主版本与能力。`client/transport.js` 为每台机器创建独立 HTTP/WS 传输、权限状态和 RPC 映射。151 个根 Remote 接口中仅包装明确列出的 28 个，根据协议声明的身份字段分发请求。会话身份为 `remote:<hostId>:<sessionId>`；普通标题、命令文字、用户消息和文件内容保持原值，`sessions.scopeOf` 直接使用官方实现。
+`client/source.js` 负责侧栏和远端状态；`client/native-adapter.js` 管理原生会话、权限和模型服务适配，`client/lifetime.js` 管理方法包装及释放，`client/slot-adapter.js` 管理指定插槽的订阅和组件包装，`client/compatibility.js` 检查宿主版本与能力。`client/transport.js` 为每台机器创建独立 HTTP/WS 传输、权限状态和 RPC 映射。根 Remote 接口中仅包装明确列出的 28 个，根据协议声明的身份字段分发请求。会话身份为 `remote:<hostId>:<sessionId>`；普通标题、命令文字、用户消息和文件内容保持原值，`sessions.scopeOf` 直接使用官方实现。
 
 插件构建复用官方 `Session`、`RemoteStream`、`RemoteStreamMuxClient` 和权限状态实现。原生 React 组件消费官方 Session 对象的事件、投影、发送回显和状态。历史、流式、分页、停止、队列和 slash command 使用官方数据层。模型目录、远程权限和空会话的工作区来源按机器分开。
 
@@ -46,7 +46,7 @@ MutationObserver 观察侧栏内部和外层容器的直接子节点，原生结
 
 本地列表按内容高度排列，与 SSH 工作区共用滚动区域；折叠本地分组后，SSH 分组紧跟本地内容。停用插件时恢复原生列表滚动样式。
 
-原生会话适配还使用 `sessions` 的运行时包装、`uiSession` 的会话来源、模型目录对象和空来源生成方法。这些兼容点依赖上游内部结构，升级必须重新验证，详见 [B-INTEGRATION.md](./B-INTEGRATION.md)。
+原生会话适配还使用 `sessions` 的运行时包装、`uiSession` 的会话来源、模型目录对象和空来源生成方法。这些兼容点依赖上游内部结构，升级必须重新验证，详见 [B-INTEGRATION.md](./B-INTEGRATION.md)。本机版本通过 `engines.dsh`、客户端版本列表和能力检查限制；远端已有服务目前未做完整版本协商，不会自动升级已有环境。远端自动安装版本固定为 `0.2.2-rc.1`。
 
 ## 构建与测试
 
@@ -61,7 +61,7 @@ npm run pack:release
 
 本地构建需要 Node.js ≥`24.9.0` 和 OpenSSH。`dist-pack/` 中生成安装包、`SHA256SUMS` 和发布说明；`npm pack` 也会先构建客户端。运行依赖由安装时的包管理器安装。
 
-GitHub Action 在推送 `master` 或手动运行时检查、构建并发布当前 `package.json` 版本。每次发布重新生成同版本 Release，安装地址保持稳定；修改版本号后生成对应新版本。PR 运行检查并保留构建附件。Action 中的基础测试不包含需要真实 SSH、浏览器及模型凭据的集成验收，发布前仍需按下方说明验证涉及的功能。
+GitHub Action 在推送 `main` 或手动运行时检查、构建并发布当前 `package.json` 版本。每次发布重新生成同版本 Release，安装地址保持稳定；修改版本号后生成对应新版本。PR 运行检查并保留构建附件。Action 中的基础测试不包含需要真实 SSH、浏览器及模型凭据的集成验收，发布前仍需按下方说明验证涉及的功能。
 
 浏览器验收使用真实官方 DSH、真实 SSH 和两个独立的远端 `DSH_HOME`，不会生成模拟事件：
 

@@ -1,7 +1,8 @@
 export const supportedVersion = '0.2.2-rc.1'
+export const supportedHostVersions = [supportedVersion, '0.2.2-rc.3']
 
 export function assertCompatible(ctx, runtime, version) {
-  if (version !== supportedVersion) throw new Error(`远程机器插件适配 DSH ${supportedVersion}，当前版本为 ${version}`)
+  if (!supportedHostVersions.includes(version)) throw new Error(`远程机器插件适配 DSH ${supportedHostVersions.join('、')}，当前版本为 ${version}`)
   const required = {
     sessions: ['binding', 'retain', 'using', 'retainInfo', 'scope', 'scopeOf', 'sessionOf', 'retainAgentScope'],
     uiWorkspace: ['openSession', 'clearMain', 'startSession', 'connectBlank'],

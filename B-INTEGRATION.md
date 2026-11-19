@@ -1,6 +1,6 @@
 # 原生会话适配
 
-适配版本为 DSH `0.2.2-rc.1`。仅修改插件自身源码及构建产物。
+本机适配版本为 DSH `0.2.2-rc.1`、`0.2.2-rc.3`，构建数据层和远端自动安装版本为 `0.2.2-rc.1`。仅修改插件自身源码及构建产物。
 
 ## 官方数据层
 
@@ -52,7 +52,9 @@
 | 新会话菜单 | conversation.hero.agentPreset 的 AgentPresetSeat、conversation.session.header.actions 的 AgentPresetLabel、conversation.hero.workspace 的 WorkspacePicker，以及 directoryFlow 的 NativeDirectoryFlow/BrowseDirectoryFlow |
 | 侧栏 | 工作区树 DOM 锚点、CSS 类名片段、sidebar.workspaces 的 WorkspaceBrowser 与 StoredEntry.inject |
 
-构建检查官方内部依赖的版本；启用前检查 DSH release 和必要能力。插件停止时，先退出远程主会话、移除会话来源，再按归属恢复原方法的属性描述符，释放流、Context 和临时列表行。其他插件后来添加的包装得到保留；旧包装失效后直接调用原方法。初始化中途失败使用同一清理流程。机器配置保留。
+构建检查官方内部依赖的版本；插件包的 `engines.dsh` 声明支持的本机版本，客户端启用前检查 DSH release 和必要能力。`supportedVersion` 指定构建数据层版本，`supportedHostVersions` 指定验收过的本机版本。远端已有服务目前没有完整版本协商，连接不会自动升级已有环境；自动安装固定版本也不能代替对已有远端服务的版本检查。
+
+插件停止时，先退出远程主会话、移除会话来源，再按归属恢复原方法的属性描述符，释放流、Context 和临时列表行。其他插件后来添加的包装得到保留；旧包装失效后直接调用原方法。初始化中途失败使用同一清理流程。机器配置保留。
 
 ## 验收边界
 

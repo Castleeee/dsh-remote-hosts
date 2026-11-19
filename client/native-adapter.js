@@ -19,7 +19,7 @@ export function installNativeAdapter(ctx, runtime, native, lifetime, operations)
   const connecting = new Map()
   const creation = new AbortController()
   lifetime.defer(() => creation.abort(new Error('远程机器插件已经停用')))
-  // DSH 0.2.2-rc.1 的原生 openWorkspace 在此处连接空白会话，继续使用原生导航、通知与草稿初始化。
+  // 原生 openWorkspace 在此处连接空白会话，继续使用原生导航、通知与草稿初始化。
   patches.wrap(ctx.uiWorkspace, 'connectBlank', (next, id, options = {}) => {
     const parsed = remoteIdentity(id)
     if (parsed === undefined) return next(id, options)

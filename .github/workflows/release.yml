@@ -2,9 +2,9 @@ name: Build and release
 
 on:
   push:
-    branches: [master]
+    branches: [main]
   pull_request:
-    branches: [master]
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -42,7 +42,7 @@ jobs:
           retention-days: 14
 
   release:
-    if: github.ref == 'refs/heads/master' && github.event_name != 'pull_request'
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 5

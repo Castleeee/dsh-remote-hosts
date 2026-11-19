@@ -1,11 +1,11 @@
 # 当前实施与验收
 
-2026-11-19，适配官方 DSH `0.2.2-rc.1`。源码位置：`/Users/jack/code/dddd/dsh-remote-hosts`。
+2026-11-19，本机适配官方 DSH `0.2.2-rc.1`、`0.2.2-rc.3`；构建数据层和远端验收版本为 `0.2.2-rc.1`。源码位置：`/Users/jack/code/dddd/dsh-remote-hosts`。
 
 ## 侵入性与维护优化
 
 - 原生服务适配集中到 `client/native-adapter.js`，释放逻辑集中到 `client/lifetime.js`，插槽订阅与包装释放集中到 `client/slot-adapter.js`，版本和能力检查集中到 `client/compatibility.js`。
-- 151 个根 Remote 接口中，仅包装明确列出的 28 个会话、工作区及命令接口；依据官方描述符读取身份参数，普通标题、命令文字和查询内容保持原值。根目录查询、搜索和全局配置继续使用原生服务。`uiWorkspace.openSession` 与 `sessions.scopeOf` 保留原方法。
+- 根 Remote 接口中，仅包装明确列出的 28 个会话、工作区及命令接口；依据官方描述符读取身份参数，普通标题、命令文字和查询内容保持原值。根目录查询、搜索和全局配置继续使用原生服务。`uiWorkspace.openSession` 与 `sessions.scopeOf` 保留原方法。
 - 插槽使用官方 `slots.subscribe` 分别订阅，按组件名称、locale 和必要的 `options.id` 识别原生目标；其他菜单组件保持自己的注入函数，目标组件移除时立即释放包装。
 - 远程模型目录直接构造宿主公开的 `ModelDirectory`，使用所属机器的 catalog 和投影，随会话作用域释放。
 - 方法恢复检查属性归属，保留其他插件随后安装的包装；停用后，其他插件持有的旧包装直接调用原方法。UI 来源先于方法包装释放，初始化中途失败使用同一清理流程。
@@ -89,11 +89,13 @@
 
 侵入性优化验收在 `.verification/intrusion-compatibility.log`；原生新建、Agent、模型和工作区菜单及真实回复回归在 `.verification/intrusion-new-session.log`，Firefox 的远端 Agent 切换和空白会话草稿保留在 `.verification/intrusion-firefox.log`。真实聊天、问题回答、停止、队列编辑／删除／插话及审批允许／拒绝通过，记录在 `.verification/intrusion-interactions.log`；6 项基础测试在 `.verification/intrusion-unit.log`。
 
+桌面端内置 DSH `0.2.2-rc.3` 在独立 profile 运行，与远端 `0.2.2-rc.1` 完成真实新建、Agent 与模型菜单、工作区创建和切换、草稿保留、本地会话回归及成功模型回复，记录在 `.verification/desktop-lab/new-session.log`。159 个根接口仅包装 28 个、方法及插槽恢复、真实其他插件共存、初始化失败清理和侧栏焦点保持通过，记录在 `.verification/desktop-lab/compatibility.log`；6 项基础测试在 `.verification/desktop-lab/unit.log`。
+
 ## 当前限制
 
 默认 50 条消息窗口的 `Session.loadOlder/loadThrough` 需要更长的真实会话；小窗口分页结果不能代替该项验收。服务重启、活动流式期间中断后的结算、子代理完整路由、远端文件动作、侧栏完整键盘/右键/拖拽仍待验证，见 [ROADMAP.md](./ROADMAP.md)。
 
-日常 Desktop 尚未安装本插件。安装操作需要在关键 lab 验收通过后进行，见 [INSTALL.md](./INSTALL.md)。
+Desktop 使用线上发布包安装，见 [INSTALL.md](./INSTALL.md)。本机版本通过包声明、客户端支持列表和接口能力检查限制；远端已有服务尚未实现完整版本协商，不会自动升级已有环境。
 
 ## 测试环境与清理
 

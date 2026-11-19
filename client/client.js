@@ -4801,8 +4801,9 @@ var Lifetime = class {
 
 // client/compatibility.js
 var supportedVersion = "0.2.2-rc.1";
+var supportedHostVersions = [supportedVersion, "0.2.2-rc.3"];
 function assertCompatible(ctx, runtime, version) {
-  if (version !== supportedVersion) throw new Error(`\u8FDC\u7A0B\u673A\u5668\u63D2\u4EF6\u9002\u914D DSH ${supportedVersion}\uFF0C\u5F53\u524D\u7248\u672C\u4E3A ${version}`);
+  if (!supportedHostVersions.includes(version)) throw new Error(`\u8FDC\u7A0B\u673A\u5668\u63D2\u4EF6\u9002\u914D DSH ${supportedHostVersions.join("\u3001")}\uFF0C\u5F53\u524D\u7248\u672C\u4E3A ${version}`);
   const required = {
     sessions: ["binding", "retain", "using", "retainInfo", "scope", "scopeOf", "sessionOf", "retainAgentScope"],
     uiWorkspace: ["openSession", "clearMain", "startSession", "connectBlank"],

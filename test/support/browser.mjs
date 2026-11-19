@@ -54,6 +54,10 @@ export async function openLab(url) {
   await page.goto(url, { waitUntil: 'domcontentloaded' })
   await page.waitForFunction(() => window.__DSH_REMOTE_HOSTS__?.snapshot().native?.patched === true, undefined, { timeout: 45000 })
   if (process.env.DSH_TEST_DISMISS_ONBOARDING === '1') {
+    const preview = page.getByRole('dialog').filter({ hasText: '预览版说明' })
+    await page.addLocatorHandler(preview, async () => {
+      await preview.getByRole('button', { name: '继续', exact: true }).click()
+    })
     const onboarding = page.getByRole('dialog').filter({ hasText: '开始使用' })
     await page.addLocatorHandler(onboarding, async () => {
       await onboarding.getByRole('button', { name: '关闭', exact: true }).click()

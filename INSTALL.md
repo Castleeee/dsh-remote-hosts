@@ -7,7 +7,7 @@
 要求本地 DSH `0.2.2-rc.1` 或 `0.2.2-rc.3`、Node.js ≥`24.9.0` 和系统 OpenSSH。在 DSH 插件管理界面添加：
 
 ```text
-https://github.com/Castleeee/dsh-remote-hosts/releases/download/v0.0.2/dsh-remote-hosts-0.0.2.tgz
+https://github.com/Castleeee/dsh-remote-hosts/releases/download/v0.0.3/dsh-remote-hosts-0.0.3.tgz
 ```
 
 也可以在 [Releases](https://github.com/Castleeee/dsh-remote-hosts/releases) 下载 `.tgz` 文件和 `SHA256SUMS`，核对校验值后安装本地文件。安装包包含已构建的客户端，运行依赖由包管理器安装。Desktop profile 通过桌面应用的插件管理界面操作。
@@ -24,7 +24,7 @@ npm test
 npm run pack:release
 ```
 
-插件包中的 `client/client.js` 是构建产物。修改客户端源码后重新构建；安装 `dist-pack/dsh-remote-hosts-0.0.2.tgz`。`SHA256SUMS` 和对应发布说明也保存在该目录。
+插件包中的 `client/client.js` 是构建产物。修改客户端源码后重新构建；安装 `dist-pack/dsh-remote-hosts-0.0.3.tgz`。`SHA256SUMS` 和对应发布说明也保存在该目录。
 
 ## 安装到目标 profile
 
@@ -38,9 +38,11 @@ link:/absolute/path/to/dsh-remote-hosts
 
 不同 profile 分别使用自己的 `DSH_HOME` 和机器配置。机器的本地转发端口必须空闲；指定固定 gateway 端口时，各 profile 应使用不同端口。
 
-机器管理直接读取 `~/.ssh/config`，选择机器即可连接。添加新机器输入 `ssh root@host -p 22` 或 `root@host -p22`。密码、密钥口令和指纹确认按实际 SSH 请求显示。远端缺少 DSH 或合适运行环境时，先显示安装确认：DSH `0.2.2-rc.1`，以及按需补装的 Node.js `24.20.0`（含 npm）。已有 Node.js ≥`24.9.0` 直接复用。确认前只检查环境；确认前拒绝或关闭窗口后不安装、不建立 DSH 连接。确认后显示“安装中…”和取消安装的 `×` 按钮，关闭管理窗口或浏览器仍会继续安装；重新打开可恢复查看和取消。后台执行需要保持本地 DSH 运行。端口与 DSH 认证信息自动取得。远端模型凭据在远端 DSH 中配置。
+机器管理直接读取 `~/.ssh/config`，选择机器即可连接。添加新机器输入 `ssh root@host -p 22` 或 `root@host -p22`。密码、密钥口令和指纹确认按实际 SSH 请求显示。已有服务复用原来的端口、会话和模型配置，缺少认证信息时输入其启动 URL。远端缺少 DSH 或启动所需运行环境时，先显示安装确认：DSH `0.2.2-rc.1`，以及按需补装的 Node.js `24.20.0`（含 npm）。确认前只检查环境；确认前拒绝或关闭窗口后不安装、不建立 DSH 连接。确认后显示“安装中…”和取消安装的 `×` 按钮，关闭管理窗口或浏览器仍会继续安装；重新打开可恢复查看和取消。后台执行需要保持本地 DSH 运行。远端模型凭据在远端 DSH 中配置。
 
 ## 安装异常
+
+已有环境的发现检查 PATH、NVM、插件目录和 Linux 上当前用户、相同 HOME 的 DSH 进程。发现运行中的 Web 服务后复用原服务；无法从保存状态或进程的普通日志取得认证信息时，需要输入该服务启动时显示的完整 URL。输入内容作为认证凭据处理，不出现在管理响应中。已有服务的 Node.js 保持原版本；仅需要启动服务时检查 Node.js ≥`24.9.0`。启动已有 DSH 无需 npm。自定义且没有运行、也未加入 PATH/NVM 的安装，需要先将 `dsh` 和 Node.js 加入 SSH 可用的 PATH，或启动原来的 `dsh web` 服务。支持的已有 DSH 版本为 `0.2.2-rc.1`、`0.2.2-rc.3`；其他版本明确报错。
 
 保留官方插件管理器返回的准确错误。依赖锁文件发生错误时，先备份该 profile 的 `package.json`、锁文件与配置，再使用其包管理器处理。不要直接编辑锁文件。安装失败的原因以当前执行结果为准。
 

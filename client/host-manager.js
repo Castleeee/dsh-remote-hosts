@@ -73,7 +73,7 @@ export function openSshManager({ gateway, mark, close, connected }) {
   let installationDecision
   let lastHosts = ''
   let completed = new Set()
-  const phases = {checking:'检查中…','awaiting-installation':'等待确认',installing:'安装中…',preparing:'启动中…',connecting:'连接中…',cancelling:'取消中…'}
+  const phases = {checking:'检查中…','awaiting-installation':'等待确认','awaiting-url':'等待认证地址',installing:'安装中…',preparing:'启动中…',connecting:'连接中…',cancelling:'取消中…'}
   const request = async payload => {
     const response = await fetch(`${gateway}/manage/ssh`, {method:payload ? 'POST':'GET',headers:payload && {'content-type':'application/json'},body:payload && JSON.stringify(payload),signal:AbortSignal.timeout(20000)})
     const result = await response.json()
@@ -145,8 +145,9 @@ export function openSshManager({ gateway, mark, close, connected }) {
             challenge.dataset.challengeId = challengeId
             prompt.textContent = operation.prompt.text
             answer.type = operation.prompt.secret ? 'password':'text'
+            answer.setAttribute('aria-label',operation.prompt.kind === 'dsh-url' ? 'DSH 服务 URL' : 'SSH 认证输入')
             answer.value = ''
-            answer.placeholder = operation.prompt.secret ? '密码或密钥口令':'确认主机指纹后输入 yes'
+            answer.placeholder = operation.prompt.kind === 'dsh-url' ? 'http://127.0.0.1:端口/?token=…' : operation.prompt.secret ? '密码或密钥口令':'确认主机指纹后输入 yes'
             answer.focus()
           }
         } else {challenge.hidden=true;challengeId=undefined;answer.value=''}
@@ -166,6 +167,7 @@ export function openSshManager({ gateway, mark, close, connected }) {
         } else {installation.hidden=true;installationId=undefined}
         if (operation.phase === 'checking') status.textContent=`正在检查 ${operation.alias} 上的 DSH 与运行环境…`
         if (operation.phase === 'awaiting-installation') status.textContent='等待确认安装；尚未执行安装。'
+        if (operation.phase === 'awaiting-url') status.textContent=`${operation.alias} 已有运行中的 DSH，等待认证地址。`
         if (operation.phase === 'preparing') status.textContent=`正在准备 ${operation.alias} 上的 DSH…`
         if (operation.phase === 'installing') status.textContent=`正在安装 ${operation.alias} 上的 DSH 与运行环境；关闭窗口后会继续在后台安装。`
         if (operation.phase === 'cancelling') status.textContent='正在取消并停止远端准备进程…'

@@ -35,7 +35,7 @@ await writeFile(path.join(directory, 'RELEASE_NOTES.md'), [
   '```text', url, '```', '',
   '也可以下载 tgz 文件，在插件管理界面安装本地文件。Desktop profile 由桌面应用管理。', '',
   '安装包包含构建后的客户端及 Host 插件，包管理器会安装运行依赖。机器配置、SSH 密码和测试日志不包含在安装包内。', '',
-  '连接远端前检查环境；缺少 DSH 或 Node.js 时展示安装内容和版本，经确认后执行。', '',
+  '连接远端前检查已有安装和 Linux 上运行中的官方 DSH。已有服务复用原端口、进程和配置；无法取得认证信息时输入服务启动 URL。缺少 DSH 或启动所需 Node.js 时展示安装内容和版本，经确认后执行。', '',
   '每次推送 main 会重新发布当前 package.json 版本；同版本的 Release 和安装地址会更新至该次提交。',
   '目前主要在独立 Web lab 验收，Desktop 和仍待验证的行为见仓库 PROGRESS.md 与 ROADMAP.md。', '',
   'SHA256SUMS 提供安装包的 SHA-256 校验值。', '',

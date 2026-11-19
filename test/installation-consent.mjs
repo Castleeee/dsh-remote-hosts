@@ -48,6 +48,10 @@ async function waitFor(operation, timeout = 20000) {
 async function serviceDirectories() {
   return (await ssh(`for process in $(pgrep -u ${quote([user])}); do case "$(readlink /proc/$process/exe)" in */bin/node) readlink -e "/proc/$process/cwd";; esac; done`)).trim().split('\n')
 }
+async function stopServices() {
+  await ssh(`count=0; for process in $(pgrep -u ${quote([user])}); do case "$(readlink /proc/$process/exe)" in */bin/node) kill -TERM "$process"; count=$((count+1));; esac; done; test "$count" -gt 0`)
+  await waitFor(async () => (await serviceDirectories()).every(directory => !directory))
+}
 try {
   await execute('ssh-keygen', ['-q','-t','ed25519','-N','','-f',`${directory}/key`])
   await ssh(quote(['mkdir','-m','700',remoteDirectory]))
@@ -109,6 +113,7 @@ try {
     await ssh(`test ! -e ${quote([`${base}/node`])}`)
     console.log('PASS: preinstalled official DSH and real NVM Node.js start and connect without installation or a confirmation prompt')
     await gateway.removeHost(host.id)
+    await stopServices()
     await ssh(quote(['mv',`${base}/app`,`${base}/app-saved`]))
     await page.getByRole('button', {name:'重新连接',exact:true}).click()
     await confirmation.waitFor()
@@ -128,6 +133,7 @@ try {
     await page.close()
     page = await browser.newPage()
     page.on('pageerror', error => errors.push(error.message))
+    confirmation = page.getByRole('group',{name:'安装确认'})
     await page.goto(pageUrl)
     await page.getByRole('button', {name:'安装中…',exact:true}).waitFor()
     await page.getByRole('button', {name:'取消 installation-verification 的安装'}).click()
@@ -137,6 +143,9 @@ try {
     assert.equal((await ssh(quote([`${home}/.nvm/versions/node/v24.20.0/bin/node`,'-p','process.versions.node']))).trim(), '24.20.0')
     assert.equal(gateway.status().hosts.length, 0)
     console.log('PASS: actual npm installation continues after manager and browser page close, restores progress on reopen, and cancels with remote process and staging cleanup while preserving installed Node.js')
+    await ssh(quote(['mv',`${base}/app-saved`,`${base}/app`]))
+    await connect()
+    await page.getByRole('status').filter({hasText:'已连接 installation-verification'}).waitFor({timeout:120000})
   } else {
   await connect()
   await confirmation.waitFor()
@@ -217,6 +226,14 @@ try {
   console.log('PASS: immediate close after approval preserves installation; background Node.js 24.20.0 and official DSH 0.2.2-rc.1 installation completes and authenticates over SSH after reopening')
 
   await gateway.removeHost(host.id)
+  await page.getByRole('button', { name:'重新连接',exact:true }).click()
+  await waitFor(async () => gateway.status().hosts[0]?.auth === 'ok' && (await (await fetch(`${gatewayUrl}/manage/ssh`)).json()).operations.at(-1).phase === 'ready')
+  await page.getByRole('status').filter({ hasText:'已连接 installation-verification' }).waitFor()
+  assert.equal(await confirmation.isVisible(),false)
+  assert.equal(gateway.status().hosts[0].remotePort,host.remotePort)
+  console.log('PASS: a fresh machine record rediscovers the existing managed service and credential without reinstalling or launching another service')
+  await gateway.removeHost(gateway.status().hosts[0].id)
+  await stopServices()
   await ssh(quote(['mkdir','-p',`${home}/.nvm/versions/node`]))
   await ssh(quote(['mv',`${base}/node`,`${home}/.nvm/versions/node/v24.20.0`]))
   await ssh(quote(['mv',`${base}/app`,`${base}/app-saved`]))
@@ -248,6 +265,26 @@ try {
   assert.equal(gateway.status().hosts[0].auth, 'ok')
   console.log('PASS: existing DSH and compatible NVM Node.js connect without an installation prompt or runtime download')
   }
+  const managedHost = gateway.status().hosts[0]
+  await gateway.removeHost(managedHost.id)
+  await page.getByRole('button',{name:'重新连接',exact:true}).click()
+  await waitFor(async () => gateway.status().hosts[0]?.auth === 'ok' && (await (await fetch(`${gatewayUrl}/manage/ssh`)).json()).operations.at(-1).phase === 'ready',120000)
+  assert.equal(gateway.status().hosts[0].remotePort,managedHost.remotePort)
+  assert.equal(await confirmation.isVisible(),false)
+  console.log('PASS: a new machine record discovers and authenticates the running managed service without launching another process')
+  await gateway.removeHost(gateway.status().hosts[0].id)
+  await stopServices()
+  await ssh(quote(['mkdir','-p',`${home}/custom-dsh`]))
+  await ssh(quote(['mv',`${base}/app`,`${home}/custom-dsh/app`]))
+  await ssh(quote(['ln','-s',`${home}/custom-dsh/app/node_modules/.bin/dsh`,`${home}/.nvm/versions/node/v24.20.0/bin/dsh`]))
+  await ssh(quote(['mv',`${home}/.nvm/versions/node/v24.20.0/bin/npm`,`${home}/.nvm/versions/node/v24.20.0/bin/npm-saved`]))
+  await page.getByRole('button',{name:'重新连接',exact:true}).click()
+  await waitFor(async () => gateway.status().hosts[0]?.auth === 'ok' && (await (await fetch(`${gatewayUrl}/manage/ssh`)).json()).operations.at(-1).phase === 'ready',120000)
+  await page.getByRole('status').filter({hasText:'已连接 installation-verification'}).waitFor({timeout:120000})
+  assert.equal(await confirmation.isVisible(),false)
+  assert.equal(gateway.status().hosts[0].auth,'ok')
+  await ssh(`test ! -e ${quote([`${base}/app`])} && test ! -e ${quote([`${base}/node`])}`)
+  console.log('PASS: existing custom DSH installation on the NVM executable path starts without npm, a duplicate installation, or an installation prompt')
   assert.deepEqual(errors, [])
 } finally {
   await browser?.close()

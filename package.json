@@ -1,6 +1,6 @@
 {
   "name": "dsh-remote-hosts",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "private": true,
   "scripts": {
     "build": "node build.mjs",
@@ -19,7 +19,8 @@
     "test:new-session": "node test/new-session.mjs",
     "test:compatibility": "node test/compatibility.mjs",
     "test:password": "node test/ssh-password.mjs",
-    "test:installation": "node test/installation-consent.mjs"
+    "test:installation": "node test/installation-consent.mjs",
+    "test:runtime": "node test/runtime-discovery.mjs"
   },
   "devDependencies": {
     "@deepseek-ai/dsh-api-gateway": "0.2.2-rc.1",

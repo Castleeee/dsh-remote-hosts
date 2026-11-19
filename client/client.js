@@ -4370,7 +4370,7 @@ function openSshManager({ gateway, mark, close, connected }) {
   let installationDecision;
   let lastHosts = "";
   let completed = /* @__PURE__ */ new Set();
-  const phases = { checking: "\u68C0\u67E5\u4E2D\u2026", "awaiting-installation": "\u7B49\u5F85\u786E\u8BA4", installing: "\u5B89\u88C5\u4E2D\u2026", preparing: "\u542F\u52A8\u4E2D\u2026", connecting: "\u8FDE\u63A5\u4E2D\u2026", cancelling: "\u53D6\u6D88\u4E2D\u2026" };
+  const phases = { checking: "\u68C0\u67E5\u4E2D\u2026", "awaiting-installation": "\u7B49\u5F85\u786E\u8BA4", "awaiting-url": "\u7B49\u5F85\u8BA4\u8BC1\u5730\u5740", installing: "\u5B89\u88C5\u4E2D\u2026", preparing: "\u542F\u52A8\u4E2D\u2026", connecting: "\u8FDE\u63A5\u4E2D\u2026", cancelling: "\u53D6\u6D88\u4E2D\u2026" };
   const request = async (payload) => {
     const response = await fetch(`${gateway}/manage/ssh`, { method: payload ? "POST" : "GET", headers: payload && { "content-type": "application/json" }, body: payload && JSON.stringify(payload), signal: AbortSignal.timeout(2e4) });
     const result = await response.json();
@@ -4455,8 +4455,9 @@ function openSshManager({ gateway, mark, close, connected }) {
             challenge.dataset.challengeId = challengeId;
             prompt.textContent = operation.prompt.text;
             answer2.type = operation.prompt.secret ? "password" : "text";
+            answer2.setAttribute("aria-label", operation.prompt.kind === "dsh-url" ? "DSH \u670D\u52A1 URL" : "SSH \u8BA4\u8BC1\u8F93\u5165");
             answer2.value = "";
-            answer2.placeholder = operation.prompt.secret ? "\u5BC6\u7801\u6216\u5BC6\u94A5\u53E3\u4EE4" : "\u786E\u8BA4\u4E3B\u673A\u6307\u7EB9\u540E\u8F93\u5165 yes";
+            answer2.placeholder = operation.prompt.kind === "dsh-url" ? "http://127.0.0.1:\u7AEF\u53E3/?token=\u2026" : operation.prompt.secret ? "\u5BC6\u7801\u6216\u5BC6\u94A5\u53E3\u4EE4" : "\u786E\u8BA4\u4E3B\u673A\u6307\u7EB9\u540E\u8F93\u5165 yes";
             answer2.focus();
           }
         } else {
@@ -4486,6 +4487,7 @@ ${plan.installNode ? `\u73B0\u6709 Node.js ${plan.existingNode ?? "\u672A\u5B89\
         }
         if (operation.phase === "checking") status.textContent = `\u6B63\u5728\u68C0\u67E5 ${operation.alias} \u4E0A\u7684 DSH \u4E0E\u8FD0\u884C\u73AF\u5883\u2026`;
         if (operation.phase === "awaiting-installation") status.textContent = "\u7B49\u5F85\u786E\u8BA4\u5B89\u88C5\uFF1B\u5C1A\u672A\u6267\u884C\u5B89\u88C5\u3002";
+        if (operation.phase === "awaiting-url") status.textContent = `${operation.alias} \u5DF2\u6709\u8FD0\u884C\u4E2D\u7684 DSH\uFF0C\u7B49\u5F85\u8BA4\u8BC1\u5730\u5740\u3002`;
         if (operation.phase === "preparing") status.textContent = `\u6B63\u5728\u51C6\u5907 ${operation.alias} \u4E0A\u7684 DSH\u2026`;
         if (operation.phase === "installing") status.textContent = `\u6B63\u5728\u5B89\u88C5 ${operation.alias} \u4E0A\u7684 DSH \u4E0E\u8FD0\u884C\u73AF\u5883\uFF1B\u5173\u95ED\u7A97\u53E3\u540E\u4F1A\u7EE7\u7EED\u5728\u540E\u53F0\u5B89\u88C5\u3002`;
         if (operation.phase === "cancelling") status.textContent = "\u6B63\u5728\u53D6\u6D88\u5E76\u505C\u6B62\u8FDC\u7AEF\u51C6\u5907\u8FDB\u7A0B\u2026";

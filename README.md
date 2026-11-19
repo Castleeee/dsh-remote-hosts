@@ -6,7 +6,7 @@
 
 ## 使用
 
-1. 在本地 DSH 的插件管理器中安装 `https://github.com/Castleeee/dsh-remote-hosts/releases/download/v0.0.2/dsh-remote-hosts-0.0.2.tgz`，重启目标 profile。也可以从 [Releases](https://github.com/Castleeee/dsh-remote-hosts/releases) 下载 `.tgz` 文件安装。
+1. 在本地 DSH 的插件管理器中安装 `https://github.com/Castleeee/dsh-remote-hosts/releases/download/v0.0.3/dsh-remote-hosts-0.0.3.tgz`，重启目标 profile。也可以从 [Releases](https://github.com/Castleeee/dsh-remote-hosts/releases) 下载 `.tgz` 文件安装。
 2. 打开侧栏“机器管理”，直接选择 `~/.ssh/config` 中的机器连接。
 3. 添加新机器时输入 `ssh root@host -p 22` 或 `root@host -p22`。配置写入同一 SSH 文件，VS Code 可以直接使用。
 4. SSH 需要密码、密钥口令或主机指纹确认时，界面才显示认证输入。密码不保存。
@@ -18,7 +18,9 @@ SSH 复用 `~/.ssh/config` 及 Include 文件，系统 OpenSSH 处理 Host、Mat
 
 目录区域和提示区域保持固定高度，切换时保留现有列表直到新结果返回。窗口内最多缓存 32 个目录，每项有效 15 秒；返回刚访问过的目录和筛选同一目录下的名称会复用列表。快速查询不显示加载文字，超过 250 毫秒才提示正在读取。
 
-DSH 连接信息保存在 `$DSH_HOME/remote-hosts.json`，文件权限为 `0600`。管理接口不返回 token。SSH 密码只通过单次 SSH_ASKPASS 请求传给 OpenSSH。远端官方 DSH `0.2.2-rc.1` 安装目录为 `~/.local/share/dsh-remote-hosts`，会话与模型配置使用远端 `~/.dsh`。已有 Node.js ≥`24.9.0`（包括 NVM 安装）直接复用；缺少合适版本时，确认后在上述独立目录安装 Node.js `24.20.0` 和自带 npm，系统已有 Node.js 保留。
+DSH 连接信息保存在 `$DSH_HOME/remote-hosts.json`，文件权限为 `0600`。管理接口不返回 token。SSH 密码只通过单次 SSH_ASKPASS 请求传给 OpenSSH。准备脚本检查 PATH、NVM、插件安装目录，以及 Linux 上同一用户、相同 HOME 的官方 DSH 进程，识别自定义安装目录和 DSH_HOME。已有 Web 服务直接通过 SSH 连接原端口，保留原进程、模型配置及会话；从插件保存的服务状态或进程的普通日志文件取得的认证信息会先验证。无法取得认证信息时，界面要求粘贴服务启动时显示的完整 URL；该地址只接受 loopback HTTP，连接成功后保存，下次直接复用。多个服务且没有已保存的服务信息时，通过该 URL 明确连接目标。
+
+已有 DSH `0.2.2-rc.1`、`0.2.2-rc.3` 可复用；检测到其他版本时明确报错，保持已有安装。已有运行服务不触发 Node.js 升级。需要启动服务时要求 Node.js ≥`24.9.0`，启动已有 DSH 不要求 npm。仅缺少 DSH 或启动所需的 Node.js 时显示安装确认：官方 DSH `0.2.2-rc.1`、Node.js `24.20.0` 和自带 npm 按需安装到 `~/.local/share/dsh-remote-hosts`。新安装使用 `DSH_HOME` 或默认 `~/.dsh`；系统已有安装保留。
 
 ## 实现
 
@@ -98,6 +100,8 @@ Chrome 路径可通过 `CHROME_PATH` 指定。`DSH_HISTORY_SESSION` 可指定第
 `npm run test:compatibility` 验证真实宿主上的 28 个根 RPC 包装、原生 scopeOf、普通 `remote:` 前缀文字的本地请求、方法恢复、其他插件同时包装服务及注册菜单、组件卸载恢复、初始化中途失败清理，以及轮询和真实改名后的节点与焦点保留。
 
 `npm run test:installation` 在真实 SSH 机器创建专用用户和独立 sshd，验证检查环境、安装提示、拒绝、确认前关闭窗口、过期确认、后台安装与重新打开、取消实际下载进程，以及 Node.js 与 DSH 安装和真实连接，最后清理专用环境。
+
+`DSH_TEST_HOSTS_FILE='<已有服务的机器配置文件>' npm run test:runtime` 检查真实非交互 SSH 中的自定义安装与运行服务发现，验证认证地址输入、原端口和进程复用、真实会话查询、后续直接连接以及管理响应不含凭据。`DSH_TEST_SSH_ALIAS` 默认为 `jack-dirty-linux`。测试配置文件包含敏感凭据，请勿提交。
 
 后台安装由本地 DSH Host 管理。关闭管理窗口或浏览器后继续执行；停止本地 DSH、禁用 Host 插件或点击取消会停止准备任务。取消时清理本次安装目录，已完整安装的运行环境保留供再次连接使用。
 
